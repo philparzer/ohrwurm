@@ -1,0 +1,12 @@
+* 	pick 10 ()
+* 	haare zum ausruhen
+* 	balken der sich füllt wenn zu langsames y delta (steigt schneller wenn auf haar)
+* 	decal png gif shadow instantiated random rotation => 
+	hinter der kamera hand instantiated mit gleicher rotation
+*	laser pointer => tot
+* 	creme => sticky
+* 	oil => faster
+*	spray can => freeze particle system mit collider (pulse oder threshold mit balken?)
+
+
+*	cinemachine cam follow target
