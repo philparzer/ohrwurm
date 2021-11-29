@@ -10,14 +10,16 @@ public class PlayerController : MonoBehaviour
     [SerializeField] [Range(10, 15)] float baseSpeed = 10.0f;
     public ClimbableModifier climbableModifier;
     public bool isClimbing = false;
+    public bool isRunning = false;
     private UnityEngine.Rigidbody rigidBody;
-
+    private Animator earwigAnimator;
     private float speed;
 
 
     // Start is called before the first frame update
     void Start()
     {
+        earwigAnimator = GetComponent<Animator>();
         speed = baseSpeed;
         rigidBody = GetComponent<Rigidbody>();
         rigidBody.freezeRotation = true;
@@ -37,7 +39,7 @@ public class PlayerController : MonoBehaviour
     {
         float horizontalIn = Input.GetAxis("Horizontal") * Time.deltaTime * speed;
         float verticalIn = Input.GetAxis("Vertical") * Time.deltaTime * speed;
-        
+
         if (verticalIn != 0)
         {
             Move(horizontalIn, verticalIn);
