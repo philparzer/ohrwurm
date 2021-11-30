@@ -3,74 +3,138 @@ using System.Collections.Generic;
 using UnityEngine;
 using ClimbableEnums;
 
-public class PlayerController : MonoBehaviour
+
+namespace Player
+{
+    public class PlayerController : MonoBehaviour
 {
 
-    //expose a public variable to adjust the speed of the player
     [SerializeField] [Range(10, 15)] float baseSpeed = 10.0f;
+    [SerializeField] float climbOffset = .8f;
     public ClimbableModifier climbableModifier;
     public bool isClimbing = false;
     public bool isRunning = false;
-    private UnityEngine.Rigidbody rigidBody;
-    private Animator earwigAnimator;
     private float speed;
 
+    private UnityEngine.Rigidbody rigidBody;
+    private Animator earwigAnimator;
 
-    // Start is called before the first frame update
+    private Transform castObjR;
+    private Transform castObjL;
+    private Transform castObjB;
+    private Transform castObjF;
+
+    private RaycastHit hitForward;
+    private RaycastHit hitF;
+    private RaycastHit hitB;
+    private RaycastHit hitL;
+    private RaycastHit hitR;
+    
+
     void Start()
     {
-        earwigAnimator = GetComponent<Animator>();
-        speed = baseSpeed;
-        rigidBody = GetComponent<Rigidbody>();
+        earwigAnimator = transform.Find("earwig").GetComponent<Animator>();
+        
+        rigidBody = transform.Find("earwig").GetComponent<Rigidbody>();
         rigidBody.freezeRotation = true;
+        rigidBody.useGravity = false;
+
+        castObjR = transform.GetChild(1).Find("rightCast");
+        castObjL = transform.GetChild(1).Find("leftCast");
+        castObjF = transform.GetChild(1).Find("frontCast");
+        castObjB = transform.GetChild(1).Find("backCast");
+        
+        speed = baseSpeed;
+
     }
 
-    void Move(float horizontalIn, float verticalIn)
-    {   
-        
-        if (!isClimbing) {transform.Translate(horizontalIn, 0, verticalIn);}
-        else {transform.Translate(horizontalIn, verticalIn, 0);}
-        
-
-    }
-
-    // Update is called once per frame
     void Update()
     {
-        float horizontalIn = Input.GetAxis("Horizontal") * Time.deltaTime * speed;
-        float verticalIn = Input.GetAxis("Vertical") * Time.deltaTime * speed;
+        RotationCasts(); 
+        Move();
+    }
 
-        if (verticalIn != 0)
+    private void Move()
+    {
+        float horizontalIn = Input.GetAxis("Horizontal");
+        float verticalIn = Input.GetAxis("Vertical");
+
+        if (horizontalIn == 0 && verticalIn == 0)
         {
-            Move(horizontalIn, verticalIn);
+            earwigAnimator.SetBool("running", false);
         }
 
         else 
         {
-            rigidBody.useGravity = true;
+            earwigAnimator.SetBool("running", true);
+            float horizontal = horizontalIn * speed * Time.deltaTime;
+            float vertical = verticalIn * speed * Time.deltaTime;
+            transform.Translate(horizontal, 0, vertical); 
         }
         
     }
 
+    private void RotationCasts()
+    {
 
-    private void OnCollisionEnter(Collision other) {
-        if (other.gameObject.GetComponent<Climbable>() == null) {return;}
+            Physics.Raycast(castObjR.position, -castObjR.up, out hitR);
+            Debug.DrawRay(castObjR.position, -castObjR.up * hitR.distance, Color.red);
 
-        speed = other.gameObject.GetComponent<Climbable>().getClimbableData() * baseSpeed;
-        climbableModifier = other.gameObject.GetComponent<Climbable>().climbableModifier;
-        
-        isClimbing = true;
-        rigidBody.useGravity = false;
 
-        Transform child = transform.GetChild(0);
-        child.rotation = Quaternion.Euler(0, -90, 90);
+            Physics.Raycast(castObjL.position, -castObjL.up, out hitL);
+            Debug.DrawRay(castObjL.position, -castObjL.up * hitL.distance, Color.blue);
 
+
+            Physics.Raycast(castObjF.position, -castObjF.up, out hitF);
+            Debug.DrawRay(castObjF.position, -castObjF.up * hitF.distance, Color.green);
+
+            
+
+            Physics.Raycast(castObjB.position, -castObjB.up, out hitB);
+            Debug.DrawRay(castObjB.position, -castObjB.up * hitB.distance, Color.black);
+
+            //TODO: check climbableModifier of hit surface
+
+            float delta = hitF.distance - hitB.distance;
+
+            //revert clipping 
+            //TODO: remove magic numbers
+            if (hitF.distance < 1f || hitB.distance < 1f)
+            {
+                Debug.Log("NOT clipping");
+                transform.Translate(0, 5 * Time.deltaTime, 0);
+            }
+
+            else if (hitF.distance > 1.5f || hitB.distance > 1.5f)
+            {
+                Debug.Log("clipping"); //FIXME: buggy?
+                transform.Translate(0, -30 * Time.deltaTime, 0);
+            }
+
+
+            if (delta > 0)
+            {   
+                Debug.Log("delta: " + delta);
+                Debug.Log("FRONT");
+                transform.Rotate(90 * Time.deltaTime, 0, 0);
+            }
+
+            else if (delta < 0)
+            {
+                Debug.Log("delta: " + delta);
+                Debug.Log("BACK");
+                transform.Rotate(-90 * Time.deltaTime, 0, 0);
+            }
+
+            Physics.Raycast(castObjF.position, castObjF.forward, out hitForward);
+            Debug.DrawRay(castObjF.position, castObjF.forward * hitForward.distance, Color.yellow);
+            
+            //TODO: y rotation
+    
     }
 
 
-    private void OnCollisionExit(Collision other) {
-        if (other.gameObject.GetComponent<Climbable>() == null) {return;}
-        isClimbing = false;
-        speed = baseSpeed;
-    }
+
 }
+}
+
