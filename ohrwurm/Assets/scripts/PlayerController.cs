@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using ClimbableEnums;
+using Cinemachine;
 
 
 namespace Player
@@ -13,8 +14,10 @@ namespace Player
     [SerializeField] float climbOffset = .8f;
     public ClimbableModifier climbableModifier;
     public bool isClimbing = false;
-    public bool isRunning = false;
     private float speed;
+
+    public Cinemachine.CinemachineVirtualCamera cam1;
+    public Cinemachine.CinemachineVirtualCamera cam2;
 
     private UnityEngine.Rigidbody rigidBody;
     private Animator earwigAnimator;
@@ -33,6 +36,8 @@ namespace Player
 
     void Start()
     {
+        cam1.Priority = 10;
+        cam2.Priority = 11;
         earwigAnimator = transform.Find("earwig").GetComponent<Animator>();
         
         rigidBody = transform.Find("earwig").GetComponent<Rigidbody>();
@@ -52,6 +57,19 @@ namespace Player
     {
         RotationCasts(); 
         Move();
+
+        if (transform.rotation.eulerAngles.x < 300) 
+        {   
+            Debug.Log("rotation");
+            cam1.Priority = 10;
+            cam2.Priority = 11;
+        }
+
+        else {
+            cam1.Priority = 11;
+            cam2.Priority = 10;
+        }
+
     }
 
     private void Move()
@@ -96,40 +114,54 @@ namespace Player
             //TODO: check climbableModifier of hit surface
 
             float delta = hitF.distance - hitB.distance;
+            float deltaY = hitL.distance - hitR.distance;
 
             //revert clipping 
-            //TODO: remove magic numbers
             if (hitF.distance < 1f || hitB.distance < 1f)
             {
-                Debug.Log("NOT clipping");
-                transform.Translate(0, 5 * Time.deltaTime, 0);
+                transform.Translate(0, 30 * Time.deltaTime, 0);
             }
 
             else if (hitF.distance > 1.5f || hitB.distance > 1.5f)
             {
-                Debug.Log("clipping"); //FIXME: buggy?
                 transform.Translate(0, -30 * Time.deltaTime, 0);
             }
 
 
-            if (delta > 0)
-            {   
-                Debug.Log("delta: " + delta);
-                Debug.Log("FRONT");
-                transform.Rotate(90 * Time.deltaTime, 0, 0);
-            }
-
-            else if (delta < 0)
+            if ((Mathf.Abs(delta) - 1) > (Mathf.Abs(deltaY) - 1))
             {
-                Debug.Log("delta: " + delta);
-                Debug.Log("BACK");
-                transform.Rotate(-90 * Time.deltaTime, 0, 0);
+                //rotate up down
+                if (delta > 0)
+                {   
+                    transform.Rotate(90 * Time.deltaTime, 0, 0);
+                }
+
+                else if (delta < 0)
+                {
+
+                    transform.Rotate(-90 * Time.deltaTime, 0, 0);
+                }
             }
 
-            Physics.Raycast(castObjF.position, castObjF.forward, out hitForward);
-            Debug.DrawRay(castObjF.position, castObjF.forward * hitForward.distance, Color.yellow);
+            else 
+            {
+                //rotate left right
+                if (deltaY > .5f)
+                {   
+                    transform.Rotate(0, 0, 90 * Time.deltaTime);
+                }
+
+                else if (deltaY < -.5f)
+                {
+                    transform.Rotate(0, 0, -90 * Time.deltaTime);
+                }
+            }
             
-            //TODO: y rotation
+            
+
+            
+            
+
     
     }
 
