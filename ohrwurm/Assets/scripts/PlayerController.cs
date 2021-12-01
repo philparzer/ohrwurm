@@ -10,11 +10,22 @@ namespace Player
     public class PlayerController : MonoBehaviour
 {
 
-    [SerializeField] [Range(10, 15)] float baseSpeed = 10.0f;
+    [SerializeField] [Range(10, 100)] float baseSpeed = 10.0f;
     [SerializeField] float climbOffset = .8f;
     public ClimbableModifier climbableModifier;
+    public float dryMod = 1.0f;
+    public float stickyMod = 0.3f;
+    public float slipperyMod = 5.0f;
+
     public bool isClimbing = false;
+
+    public float frozenTime = 0; //TODO: set this on impact w particle effect
+    public float slipperyTime = 0;
+    public float stickyTime = 0;
     private float speed;
+
+    private float modifier = 1.0f;
+    
 
     public Cinemachine.CinemachineVirtualCamera cam1;
     public Cinemachine.CinemachineVirtualCamera cam2;
@@ -56,20 +67,30 @@ namespace Player
     void Update()
     {
         RotationCasts(); 
-        Move();
+        if (stickyTime > 0){stickyTime -= Time.deltaTime;}
+        if (slipperyTime > 0){slipperyTime -= Time.deltaTime;}
+        if (frozenTime <= 0)
+        {
+            Move();
 
-        if (transform.rotation.eulerAngles.x < 300) 
-        {   
-            Debug.Log("rotation");
-            cam1.Priority = 10;
-            cam2.Priority = 11;
+            if (transform.rotation.eulerAngles.x < 300) 
+            {   
+                Debug.Log("rotation");
+                cam1.Priority = 10;
+                cam2.Priority = 11;
+            }
+
+            else {
+                cam1.Priority = 11;
+                cam2.Priority = 10;
+            }
         }
 
-        else {
-            cam1.Priority = 11;
-            cam2.Priority = 10;
+        else 
+        {
+            frozenTime -= Time.deltaTime;
         }
-
+        
     }
 
     private void Move()
@@ -85,8 +106,8 @@ namespace Player
         else 
         {
             earwigAnimator.SetBool("running", true);
-            float horizontal = horizontalIn * speed * Time.deltaTime;
-            float vertical = verticalIn * speed * Time.deltaTime;
+            float horizontal = horizontalIn * speed * modifier * Time.deltaTime;
+            float vertical = verticalIn * speed * modifier * Time.deltaTime;
             transform.Translate(horizontal, 0, vertical); 
         }
         
@@ -98,31 +119,27 @@ namespace Player
             Physics.Raycast(castObjR.position, -castObjR.up, out hitR);
             Debug.DrawRay(castObjR.position, -castObjR.up * hitR.distance, Color.red);
 
-
             Physics.Raycast(castObjL.position, -castObjL.up, out hitL);
             Debug.DrawRay(castObjL.position, -castObjL.up * hitL.distance, Color.blue);
-
 
             Physics.Raycast(castObjF.position, -castObjF.up, out hitF);
             Debug.DrawRay(castObjF.position, -castObjF.up * hitF.distance, Color.green);
 
-            
-
             Physics.Raycast(castObjB.position, -castObjB.up, out hitB);
             Debug.DrawRay(castObjB.position, -castObjB.up * hitB.distance, Color.black);
 
-            //TODO: check climbableModifier of hit surface
+            CheckSurface(hitF);
 
             float delta = hitF.distance - hitB.distance;
             float deltaY = hitL.distance - hitR.distance;
 
             //revert clipping 
-            if (hitF.distance < 1f || hitB.distance < 1f)
+            if (hitF.distance < 0.5f || hitB.distance < 0.5f)
             {
                 transform.Translate(0, 30 * Time.deltaTime, 0);
             }
 
-            else if (hitF.distance > 1.5f || hitB.distance > 1.5f)
+            else if (hitF.distance > 1.2f || hitB.distance > 1.2f)
             {
                 transform.Translate(0, -30 * Time.deltaTime, 0);
             }
@@ -156,15 +173,31 @@ namespace Player
                     transform.Rotate(0, 0, -90 * Time.deltaTime);
                 }
             }
-            
-            
-
-            
-            
-
-    
     }
 
+
+    private void CheckSurface(RaycastHit hit)
+    {
+        try {climbableModifier = hit.collider.gameObject.GetComponent<Climbable>().getClimbableData(); Debug.Log(climbableModifier);}
+        catch{climbableModifier = ClimbableEnums.ClimbableModifier.Dry; Debug.Log("dry");}
+
+        switch (climbableModifier)
+        {
+            case ClimbableEnums.ClimbableModifier.Dry:
+                if (slipperyTime <= 0 && stickyTime <= 0) {modifier = dryMod;};
+                break;
+
+            case ClimbableEnums.ClimbableModifier.Sticky:
+                modifier = stickyMod;
+                stickyTime = 10f;
+                break;
+
+            case ClimbableEnums.ClimbableModifier.Slippery:
+                modifier = slipperyMod;
+                slipperyTime = 10f;
+                break;
+        }
+    }
 
 
 }
