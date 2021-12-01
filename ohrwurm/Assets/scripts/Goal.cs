@@ -5,6 +5,9 @@ using UnityEngine.SceneManagement;
 
 public class Goal : MonoBehaviour
 {
+
+    public GameMeta gameManager;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -21,9 +24,10 @@ public class Goal : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.tag == "Player")
-        {
-            //reload current scene
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        {   
+            gameManager.Win();
+            // //reload current scene
+            // SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
     }
 

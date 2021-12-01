@@ -9,7 +9,8 @@ namespace Player
 {
     public class PlayerController : MonoBehaviour
 {
-
+    public bool isDead = false;
+    public GameMeta gameManager;
     [SerializeField] [Range(10, 100)] float baseSpeed = 10.0f;
     [SerializeField] float climbOffset = .8f;
     public ClimbableModifier climbableModifier;
@@ -31,6 +32,10 @@ namespace Player
     public Cinemachine.CinemachineVirtualCamera cam1;
     public Cinemachine.CinemachineVirtualCamera cam2;
 
+    public Cinemachine.CinemachineVirtualCamera loseCam;
+    public ParticleSystem freezeEffect;
+    public ParticleSystem deathEffect;
+
     private UnityEngine.Rigidbody rigidBody;
     private Animator earwigAnimator;
 
@@ -45,13 +50,14 @@ namespace Player
     private RaycastHit hitL;
     private RaycastHit hitR;
     
+    private void Awake() {
+        cam1.Priority = 11;    
+    }
 
     void Start()
     {
-        cam1.Priority = 10;
-        cam2.Priority = 11;
+        deathEffect.Stop();
         earwigAnimator = transform.Find("earwig").GetComponent<Animator>();
-        
         rigidBody = transform.Find("earwig").GetComponent<Rigidbody>();
         rigidBody.freezeRotation = true;
         rigidBody.useGravity = false;
@@ -67,31 +73,31 @@ namespace Player
 
     void Update()
     {
+        if (isDead)
+        {
+            return;
+        }
 
         if (isDying) 
         {
-            //TODO: implement third virtual cam and change priority
-            rigidBody.useGravity = true;
-            rigidBody.isKinematic = false;
-            rigidBody.constraints = RigidbodyConstraints.None;
-            rigidBody.AddForce(Vector3.down * 10);
-
-            StartCoroutine(Die());
-
-
+            InitDeath();
             return;
         }
 
         RotationCasts(); 
         if (stickyTime > 0){stickyTime -= Time.deltaTime;}
         if (slipperyTime > 0){slipperyTime -= Time.deltaTime;}
+        
         if (frozenTime <= 0)
         {
-            Move();
+            if (freezeEffect.isPlaying)
+            {
+                freezeEffect.Stop();
+            }
 
+            Move();
             if (transform.rotation.eulerAngles.x < 300) 
             {   
-                Debug.Log("rotation");
                 cam1.Priority = 10;
                 cam2.Priority = 11;
             }
@@ -104,6 +110,10 @@ namespace Player
 
         else 
         {
+            if (freezeEffect.isPlaying == false)
+            {
+                freezeEffect.Play();
+            }
             frozenTime -= Time.deltaTime;
         }
         
@@ -194,8 +204,8 @@ namespace Player
 
     private void CheckSurface(RaycastHit hit)
     {
-        try {climbableModifier = hit.collider.gameObject.GetComponent<Climbable>().getClimbableData(); Debug.Log(climbableModifier);}
-        catch{climbableModifier = ClimbableEnums.ClimbableModifier.Dry; Debug.Log("dry");}
+        try {climbableModifier = hit.collider.gameObject.GetComponent<Climbable>().getClimbableData();}
+        catch{climbableModifier = ClimbableEnums.ClimbableModifier.Dry;}
 
         switch (climbableModifier)
         {
@@ -216,12 +226,31 @@ namespace Player
     }
 
 
+    public void InitDeath(){
+        //TODO: implement third virtual cam and change priority
+        rigidBody.useGravity = true;
+        rigidBody.isKinematic = false;
+        rigidBody.constraints = RigidbodyConstraints.None;
+        rigidBody.AddForce(Vector3.down * 10);
+        deathEffect.Play();
+        StartCoroutine(Die());
+    }
+
+
     private IEnumerator Die()
     {
-        yield return new WaitForSeconds(10);
+        yield return new WaitForSeconds(2.3f);
         //TODO: some UI stuff
-        Destroy(gameObject);
+
+        isDead = true;
+        gameManager.GameOver();
+        loseCam.Priority = 12;
     }
+
+    
+
+
+
 
 }
 }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Player;
 
 public class Laser : MonoBehaviour
 {
@@ -16,8 +17,13 @@ public class Laser : MonoBehaviour
         //disable enable timer
     }
 
-    void OnDestroy(){
-        //unsubscribe from game start event
+    private void OnTriggerEnter(Collider other) {
+
+        if (other.gameObject.tag == "Player")
+        {
+            other.gameObject.transform.parent.GetComponent<PlayerController>().InitDeath();
+        }
+
     }
 
     
