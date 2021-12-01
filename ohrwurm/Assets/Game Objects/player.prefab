@@ -9929,6 +9929,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isDead: 0
+  gameManager: {fileID: 0}
   baseSpeed: 10
   climbOffset: 1
   climbableModifier: 0
@@ -10031,6 +10032,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c10c066cf176b534eaf6c3776b6c2ff8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameManager: {fileID: 0}
   palmPos: {fileID: 1984247691}
   lerping: 0
   handTimeout: 10

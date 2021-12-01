@@ -198,7 +198,7 @@ GameObject:
   - component: {fileID: 1629839479}
   - component: {fileID: 1629839478}
   m_Layer: 0
-  m_Name: losecam
+  m_Name: endcam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -372,7 +372,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7879755716018666559}
-  m_LocalRotation: {x: 0.13696739, y: -0.0031208072, z: 0.00043151784, w: 0.99057055}
+  m_LocalRotation: {x: 0.13696763, y: -0.002514138, z: 0.00034763291, w: 0.9905723}
   m_LocalPosition: {x: 8.319919, y: 8.177255, z: -55.679276}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -695,8 +695,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7879755717046753575}
-  m_LocalRotation: {x: -0.52994657, y: 0.008600381, z: 0.0053748847, w: 0.8479704}
-  m_LocalPosition: {x: 8.200159, y: -11.022747, z: -43.999275}
+  m_LocalRotation: {x: -0.19668953, y: -0, z: -0, w: 0.9804659}
+  m_LocalPosition: {x: -8.7, y: 247.5, z: -82.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 7879755717155712658}
