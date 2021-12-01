@@ -18,6 +18,7 @@ namespace Player
     public float slipperyMod = 5.0f;
 
     public bool isClimbing = false;
+    public bool isDying = false;
 
     public float frozenTime = 0; //TODO: set this on impact w particle effect
     public float slipperyTime = 0;
@@ -66,6 +67,21 @@ namespace Player
 
     void Update()
     {
+
+        if (isDying) 
+        {
+            //TODO: implement third virtual cam and change priority
+            rigidBody.useGravity = true;
+            rigidBody.isKinematic = false;
+            rigidBody.constraints = RigidbodyConstraints.None;
+            rigidBody.AddForce(Vector3.down * 10);
+
+            StartCoroutine(Die());
+
+
+            return;
+        }
+
         RotationCasts(); 
         if (stickyTime > 0){stickyTime -= Time.deltaTime;}
         if (slipperyTime > 0){slipperyTime -= Time.deltaTime;}
@@ -199,6 +215,13 @@ namespace Player
         }
     }
 
+
+    private IEnumerator Die()
+    {
+        yield return new WaitForSeconds(10);
+        //TODO: some UI stuff
+        Destroy(gameObject);
+    }
 
 }
 }
